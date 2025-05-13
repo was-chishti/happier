@@ -1,0 +1,117 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login | HappierClient</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@700&display=swap">
+  <link rel="icon" href="/static/happierclient-logo.png">
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8f8ff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    .banner-container {
+      margin-bottom: 30px;
+      animation: fadeIn 1s ease;
+    }
+
+    .logo-banner {
+      max-width: 620px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .login-container {
+      background-color: white;
+      padding: 36px 28px;
+      border-radius: 16px;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.12);
+      border: 1px solid #e0e0e0;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      animation: fadeIn 1s ease;
+    }
+
+    h2 {
+      font-family: 'Playfair Display', serif;
+      margin-bottom: 24px;
+      font-size: 24px;
+      color: #333366;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    input[type="text"], input[type="password"] {
+      width: 100%;
+      padding: 14px;
+      margin-bottom: 16px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      font-size: 15px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background-color: #333366;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #444488;
+    }
+
+    .error-message {
+      color: #d32f2f;
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="banner-container">
+    <img src="/static/happierclient-banner.png" alt="HappierClient Banner" class="logo-banner">
+  </div>
+
+  <div class="login-container">
+    <h2>Login to HappierClient</h2>
+    {% if error %}
+      <div class="error-message">{{ error }}</div>
+    {% endif %}
+    <form method="POST">
+      <input name="username" type="text" placeholder="Username" required>
+      <input name="password" type="password" placeholder="Password" required>
+      <button type="submit">Login</button>
+    </form>
+  </div>
+
+</body>
+</html>

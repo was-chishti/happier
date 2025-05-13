@@ -1,0 +1,195 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>HappierClient | Strategic Partner OS</title>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Inter:400,500,600,700|Playfair+Display&display=swap" />
+  <link rel="icon" type="image/png" href="/static/happierclient-logo.png" />
+  <style>
+    /* === Your existing CSS === */
+    body { font-family:'Inter',sans-serif; background:#f8f8ff; margin:0; padding:0; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+    #chatbox { width:100%; max-width:720px; background:#fff; border-radius:16px; box-shadow:0 2px 20px rgba(0,0,0,0.12); padding:24px; animation:fadeIn 0.6s ease-in-out; }
+    .logo-banner { width:100%; border-radius:12px; margin-bottom:20px; }
+    h2 { font-family:'Playfair Display',serif; font-size:24px; color:#333366; margin-bottom:16px; text-align:center; font-weight:700; }
+    .welcome-overlay { padding:12px; font-size:15px; background:#333366; color:#fff; border-radius:12px; margin-bottom:20px; text-align:center; }
+    .mode-buttons { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+    .mode-buttons button { font-size:15px; padding:10px 16px; border-radius:12px; background:#333366; color:#fff; border:none; font-weight:600; cursor:pointer; }
+    .mode-buttons button:hover { background:#444488; }
+    #sidebar { margin-bottom:12px; font-size:14px; color:#333; }
+    #messages { background:#fafbfc; padding:16px; border:1px solid #e0e0e0; border-radius:12px; height:350px; overflow-y:auto; margin-bottom:16px; }
+    .msg { padding:12px 16px; margin:10px 0; border-radius:10px; font-size:15px; line-height:1.6; white-space:pre-wrap; word-break:break-word; }
+    .user { background:#dceaff; color:#0d47a1; text-align:right; }
+    .bot  { background:#eee7ff; color:#4a148c; text-align:left; }
+    .typing { font-style:italic; color:#888; font-size:13px; margin-top:-6px; margin-bottom:8px; }
+    .input-area { display:flex; margin-top:12px; align-items:flex-end; }
+    textarea#message { flex:1; padding:14px; border:1px solid #ccc; border-radius:10px; font-size:15px; resize:none; max-height:140px; line-height:1.5; min-height:48px; transition:height .2s ease; }
+    button.send-btn { padding:14px 20px; background:#333366; color:#fff; border:none; border-radius:10px; font-weight:600; font-size:15px; margin-left:10px; cursor:pointer; }
+    button.send-btn:hover { background:#444488; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+    @media(max-width:600px){
+      #chatbox{margin:12px;padding:18px;}
+      .mode-buttons{flex-direction:column;align-items:stretch;}
+      .mode-buttons button,button.send-btn{width:100%;margin-top:8px;margin-left:0;}
+      .input-area{flex-direction:column;align-items:stretch;}
+    }
+  </style>
+</head>
+<body>
+  <div id="chatbox">
+    <img src="/static/happierclient-banner.png" class="logo-banner" alt="HappierClient Banner">
+    <h2>HappierClient – Strategic Partner Interface</h2>
+
+    <div class="welcome-overlay">
+      Welcome back! You’re working with <strong>HappierClient</strong>. Where can we unlock value today?
+    </div>
+
+    <div class="mode-buttons">
+      <button onclick="switchTab('Rainmaker')">🌧️ Rainmaker</button>
+      <button onclick="switchTab('Insight-Magus')">🧠 Insight-Magus</button>
+      <button onclick="switchTab('Voice Sculptor')">🗣️ Voice Sculptor</button>
+      <button onclick="switchTab('ROI Architect')">📈 ROI Architect</button>
+      <button onclick="clearChatHistory()" style="background:#990000;">🧹 Clear Chat</button>
+    </div>
+
+    <div id="sidebar"></div>
+    <div id="messages"></div>
+    <div id="typing-indicator" class="typing" style="display:none;">HappierClient is thinking…</div>
+
+    <div class="input-area">
+      <textarea id="message" placeholder="Ask HappierClient to help win the next pitch…"
+                oninput="autoGrow(this)" onkeydown="handleEnter(event)" rows="1"></textarea>
+      <button class="send-btn" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+
+  <!-- Embed initial messages as raw JSON -->
+  <script id="initial-messages" type="application/json">
+    {{ messages | tojson | safe }}
+  </script>
+
+  <script>
+    // 1️⃣ Grab initial messages and current tab
+    const initialMessages = JSON.parse(
+      document.getElementById("initial-messages").textContent
+    );
+    let activeTab = localStorage.getItem("activeTab") || "Rainmaker";
+
+    // 2️⃣ Helpers
+    function markdownToHtml(text) {
+      return text
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+        .replace(/### (.*?)\n?/g, "<h3>$1</h3>")
+        .replace(/^- (.*?)(\n|$)/gm, "<ul><li>$1</li></ul>");
+    }
+    function autoGrow(t) {
+      t.style.height = "auto";
+      t.style.height = Math.min(t.scrollHeight, 140) + "px";
+    }
+    function handleEnter(e) {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    }
+
+    // 3️⃣ Tab switching
+    function switchTab(tabName) {
+      activeTab = tabName;
+      localStorage.setItem("activeTab", tabName);
+      document.getElementById("sidebar").innerHTML =
+        `<div class='sidebar-note'><strong>${tabName}</strong> tools active</div>`;
+      sendMessage(`TAB_SWITCH:${tabName}`, true);
+    }
+
+    // 4️⃣ Persist chat
+    function saveChatMessage(role, content) {
+      const chat = JSON.parse(localStorage.getItem("chatHistory") || "[]");
+      chat.push({ role, content });
+      localStorage.setItem("chatHistory", JSON.stringify(chat));
+    }
+    function loadChatHistory() {
+      const box = document.getElementById("messages");
+      let hist = JSON.parse(localStorage.getItem("chatHistory") || "[]");
+      if (hist.length === 0 && initialMessages.length) {
+        hist = initialMessages;
+        localStorage.setItem("chatHistory", JSON.stringify(hist));
+      }
+      hist.forEach(m => {
+        const d = document.createElement("div");
+        d.className = "msg " + m.role;
+        d.innerHTML = markdownToHtml(m.content);
+        box.appendChild(d);
+      });
+      box.scrollTop = box.scrollHeight;
+    }
+
+    // 5️⃣ Send & receive
+    function sendMessage(pre = null, sys = false) {
+      const inp = document.getElementById("message"),
+            txt = pre || inp.value.trim(),
+            box = document.getElementById("messages"),
+            tip = document.getElementById("typing-indicator");
+      if (!txt) return;
+      if (!sys) {
+        const u = document.createElement("div");
+        u.className = "msg user";
+        u.innerHTML = markdownToHtml(txt);
+        box.appendChild(u);
+        saveChatMessage("user", txt);
+      }
+      box.scrollTop = box.scrollHeight;
+      if (!sys) { inp.value = ""; inp.style.height = "auto"; }
+      inp.disabled = true; tip.style.display = "block";
+
+      fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: txt, tab: activeTab })
+      })
+      .then(r => r.json())
+      .then(data => {
+        tip.style.display = "none";
+        const b = document.createElement("div");
+        b.className = "msg bot";
+        b.innerHTML = markdownToHtml(data.reply);
+        box.appendChild(b);
+        saveChatMessage("bot", data.reply);
+        box.scrollTop = box.scrollHeight;
+        inp.disabled = false; inp.focus();
+      })
+      .catch(() => {
+        tip.style.display = "none";
+        const e = document.createElement("div");
+        e.className = "msg bot";
+        e.innerHTML = "⚠️ Error: Unable to contact server.";
+        box.appendChild(e);
+        box.scrollTop = box.scrollHeight;
+        inp.disabled = false; inp.focus();
+      });
+    }
+
+    // 6️⃣ Clear chat
+    function clearChatHistory() {
+      if (confirm("Clear chat history?")) {
+        localStorage.removeItem("chatHistory");
+        document.getElementById("messages").innerHTML = "";
+      }
+    }
+
+    // 7️⃣ Init on load
+    window.addEventListener("DOMContentLoaded", () => {
+      loadChatHistory();
+      document.getElementById("sidebar").innerHTML =
+        `<div class='sidebar-note'><strong>${activeTab}</strong> tools active</div>`;
+    });
+  </script>
+
+  <script src="/static/signal_overlay_snippet.js"></script>
+</body>
+</html>
