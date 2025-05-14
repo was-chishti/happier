@@ -8,7 +8,7 @@ from google.oauth2 import service_account
 from google.cloud import firestore
 from dotenv import load_dotenv
 
-# --- Load Environment Variables ---
+# --- Load Environment Variables --
 load_dotenv()
 
 # --- Flask App Setup ---
