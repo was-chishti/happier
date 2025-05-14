@@ -28,13 +28,19 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 
 # --- Firestore Init ---
 try:
-    creds = service_account.Credentials.from_service_account_file(
-        os.getenv("FIREBASE_CREDENTIALS")
-    )
-    db = firestore.Client(project=os.getenv("FIREBASE_PROJECT"), credentials=creds)
+    FIREBASE_PROJECT = os.getenv("FIREBASE_PROJECT")
+    FIREBASE_CREDENTIALS = os.getenv("FIREBASE_CREDENTIALS")
+    
+    if not FIREBASE_PROJECT or not FIREBASE_CREDENTIALS:
+        raise ValueError("Firestore project or credentials not set")
+    
+    creds = service_account.Credentials.from_service_account_file(FIREBASE_CREDENTIALS)
+    db = firestore.Client(project=FIREBASE_PROJECT, credentials=creds)
     logger.info("Firestore client initialized successfully")
 except Exception as e:
     logger.error(f"Error initializing Firestore: {e}")
+    db = None
+
 
 
 # --- Combine System Instructions ---
