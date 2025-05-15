@@ -240,6 +240,18 @@ def delete_chat(active_tab, chat_id):
 
 
 
-# --- Run Flask App ---
+# # --- Run Flask App ---
+# if __name__ == "__main__":
+#     app.run(host="0.0.0.0", port=9800)
+# --- Run the Hypercorn Server ---
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=9800)
+    import hypercorn.asyncio
+    from hypercorn.config import Config
+
+    config = Config()
+    config.bind = ["0.0.0.0:9800"]
+    config.workers = 4
+    config.keep_alive_timeout = 75
+    config.timeout = 60
+
+    hypercorn.asyncio.run_single(app_asgi, config)
