@@ -8,7 +8,7 @@ from google.oauth2 import service_account
 from google.cloud import firestore
 from dotenv import load_dotenv
 
-# --- Load Environment Variables ---
+# --- Load Environment Variables --
 load_dotenv()
 
 # --- Flask App Setup ---
@@ -28,13 +28,19 @@ app.config['SESSION_COOKIE_HTTPONLY'] = True
 
 # --- Firestore Init ---
 try:
-    creds = service_account.Credentials.from_service_account_file(
-        os.getenv("FIREBASE_CREDENTIALS")
-    )
-    db = firestore.Client(project=os.getenv("FIREBASE_PROJECT"), credentials=creds)
+    FIREBASE_PROJECT = os.getenv("FIREBASE_PROJECT")
+    FIREBASE_CREDENTIALS = os.getenv("FIREBASE_CREDENTIALS")
+    
+    if not FIREBASE_PROJECT or not FIREBASE_CREDENTIALS:
+        raise ValueError("Firestore project or credentials not set")
+    
+    creds = service_account.Credentials.from_service_account_file(FIREBASE_CREDENTIALS)
+    db = firestore.Client(project=FIREBASE_PROJECT, credentials=creds)
     logger.info("Firestore client initialized successfully")
 except Exception as e:
     logger.error(f"Error initializing Firestore: {e}")
+    db = None
+
 
 
 # --- Combine System Instructions ---
@@ -234,6 +240,18 @@ def delete_chat(active_tab, chat_id):
 
 
 
-# --- Run Flask App ---
+# # --- Run Flask App ---
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=9800)
+# --- Run the Hypercorn Server ---
+# if __name__ == "__main__":
+#     import hypercorn.asyncio
+#     from hypercorn.config import Config
+
+#     config = Config()
+#     config.bind = ["0.0.0.0:9800"]
+#     config.workers = 4
+#     config.keep_alive_timeout = 75
+#     config.timeout = 60
+
+    # hypercorn.asyncio.run_single(app_asgi, config)
