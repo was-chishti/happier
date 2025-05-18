@@ -1,4 +1,9 @@
 steps:
+  - name: 'bash'
+    args: ['echo', 'Hello world!']
+  options:
+      logging: NONE
+  
   - name: 'gcr.io/cloud-builders/gsutil'
     args: ['cp', '-r', $_ENV , '.' ]
 
