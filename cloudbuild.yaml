@@ -1,7 +1,4 @@
 steps:
-  #options:
-   # logging: NONE
-  
   - name: 'gcr.io/cloud-builders/gsutil'
     args: ['cp', '-r', $_ENV , '.' ]
 
