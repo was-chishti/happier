@@ -17,4 +17,4 @@ steps:
       '--image', '$_CONTAINER_REGISTRY',
       '--platform', 'managed',
       '--region', '$_REGION'
-    ]
+  ]
