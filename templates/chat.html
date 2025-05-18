@@ -1,120 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-    <title>HappierClient | Strategic Partner OS</title>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:400,500,600,700|Playfair+Display&display=swap" />
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='happierclient-logo.png') }}" />
-    <style>
-        body { font-family: 'Inter', sans-serif; margin: 0; display: flex; height: 100vh; background: #f8f8ff; }
-        #nav { width: 250px; background: #333366; color: white; display: flex; flex-direction: column; padding: 10px; }
-        #nav h3 { margin: 10px 0; font-size: 18px; }
-        #nav button { margin: 5px 0; padding: 8px; background: #444488; border: none; color: white; border-radius: 5px; cursor: pointer; }
-        #chat-container { flex: 1; padding: 20px; display: flex; flex-direction: column; }
-        #chatbox { flex: 1; background: #fff; border-radius: 8px; padding: 16px; overflow-y: auto; margin-bottom: 10px; }
-        .msg { padding: 8px; margin: 5px; border-radius: 8px; }
-        .user { background: #dceaff; color: #0d47a1; text-align: right; }
-        .bot { background: #eee7ff; color: #4a148c; text-align: left; }
-        .input-area { display: flex; margin-top: 10px; }
-        #message { flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
-        #send { padding: 10px; background: #333366; color: white; border: none; border-radius: 5px; margin-left: 5px; cursor: pointer; }
-        #chat-list { margin-top: 10px; }
-        #chat-list button { background: #222; color: white; margin: 2px 0; padding: 5px; border-radius: 5px; }
-        #chat-list button:hover { background: #444; }
-    </style>
-</head>
-<body>
-    <div id="nav">
-        <h3>Chats</h3>
-        <button onclick="startNewChat()">➕ New Chat</button>
-        <div id="chat-list"></div>
-    </div>
-    <div id="chat-container">
-        <div id="chatbox"></div>
-        <div class="input-area">
-            <textarea id="message" placeholder="Type your message..." onkeydown="if(event.key === 'Enter') sendMessage();"></textarea>
-            <button id="send" onclick="sendMessage()">Send</button>
-        </div>
-    </div>
-
-    <script>
-        let activeTab = localStorage.getItem("activeTab") || "Rainmaker";
-        let currentChatID = null;
-
-        function startNewChat() {
-            currentChatID = 'chat_' + Date.now();
-            localStorage.setItem('currentChatID', currentChatID);
-            saveChatMessage("system", "New chat session started.");
-            loadChatHistory();
-        }
-
-        function saveChatMessage(role, content) {
-            const chatHistory = JSON.parse(localStorage.getItem(currentChatID) || "[]");
-            chatHistory.push({ role, content });
-            localStorage.setItem(currentChatID, JSON.stringify(chatHistory));
-
-            const messages = document.getElementById("chatbox");
-            const msgDiv = document.createElement("div");
-            msgDiv.className = `msg ${role}`;
-            msgDiv.textContent = content;
-            messages.appendChild(msgDiv);
-            messages.scrollTop = messages.scrollHeight;
-        }
-
-        function loadChatHistory() {
-            const messages = document.getElementById("chatbox");
-            messages.innerHTML = "";
-            const chatHistory = JSON.parse(localStorage.getItem(currentChatID) || "[]");
-            chatHistory.forEach(m => {
-                const msgDiv = document.createElement("div");
-                msgDiv.className = `msg ${m.role}`;
-                msgDiv.textContent = m.content;
-                messages.appendChild(msgDiv);
-            });
-        }
-
-        function sendMessage() {
-            const input = document.getElementById("message").value;
-            if (!input) return;
-            saveChatMessage("user", input);
-
-            fetch("/chat", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ message: input, tab: activeTab, chat_id: currentChatID })
-            })
-            .then(response => response.json())
-            .then(data => {
-                saveChatMessage("bot", data.reply);
-            });
-            document.getElementById("message").value = "";
-        }
-
-        function loadChatSessions() {
-            const chatList = document.getElementById("chat-list");
-            chatList.innerHTML = "";
-            const chats = Object.keys(localStorage).filter(key => key.startsWith("chat_"));
-            chats.forEach(chatID => {
-                const button = document.createElement("button");
-                button.textContent = `Chat ${chatID}`;
-                button.onclick = () => {
-                    currentChatID = chatID;
-                    loadChatHistory();
-                };
-                chatList.appendChild(button);
-            });
-        }
-
-        window.onload = () => {
-            currentChatID = localStorage.getItem('currentChatID') || 'chat_' + Date.now();
-            loadChatSessions();
-            loadChatHistory();
-        };
-    </script>
-</body>
-</html> -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -216,198 +99,389 @@
   </style>
   
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>HappierClient | Strategic Partner OS</title>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Inter:400,500,600,700|Playfair+Display&display=swap" />
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='happierclient-logo.png') }}" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    /* … your existing styles … */
+  </style>
 </head>
 <body>
-    <!-- Navigation Panel -->
-    <div id="nav">
-        <div>
-            <h3>Bot Tabs</h3>
-            <button class="tab-button" onclick="switchTab('Rainmaker')">🌧️ Rainmaker</button>
-            <button class="tab-button" onclick="switchTab('Insight-Magus')">🧠 Insight-Magus</button>
-            <button class="tab-button" onclick="switchTab('Voice Sculptor')">🗣️ Voice Sculptor</button>
-            <button class="tab-button" onclick="switchTab('ROI Architect')">📈 ROI Architect</button>
-            <h3>Chats</h3>
-            <button onclick="startNewChat()">➕ New Chat</button>
-            <div id="chat-list"></div>
-        </div>
-        <button id="logout" onclick="logout()">🚪 Logout</button>
+  <div id="nav">
+    <div>
+      <h3>Bot Tabs</h3>
+      <button class="tab-button" onclick="switchTab('Rainmaker')">🌧️ Rainmaker</button>
+      <button class="tab-button" onclick="switchTab('Insight-Magus')">🧠 Insight-Magus</button>
+      <button class="tab-button" onclick="switchTab('Voice Sculptor')">🗣️ Voice Sculptor</button>
+      <button class="tab-button" onclick="switchTab('ROI Architect')">📈 ROI Architect</button>
+      <h3>Chats</h3>
+      <button onclick="startNewChat()">➕ New Chat</button>
+      <div id="chat-list"></div>
     </div>
+    <button id="logout" onclick="logout()">🚪 Logout</button>
+  </div>
 
-    <!-- Chat Container -->
-    <div id="chat-container">
-        <div id="header">
-            <h2>Welcome to Happier Client</h2>
-            <img src="{{ url_for('static', filename='happierclient-banner.png') }}" alt="Logo">
-        </div>
-        <div id="chatbox"></div>
-        <div class="input-area">
-            <textarea id="message" placeholder="Type your message..." onkeydown="if(event.key === 'Enter') sendMessage();"></textarea>
-            <button id="send" onclick="sendMessage()">Send</button>
-        </div>
+  <div id="chat-container">
+    <div id="header">
+      <h2>Welcome to Happier Client</h2>
+      <img src="{{ url_for('static', filename='happierclient-banner.png') }}" alt="Logo">
     </div>
+    <div id="chatbox"></div>
+    <div id="typing-indicator" class="msg bot" style="display:none;">🤖 Typing...</div>
+    <div class="input-area">
+      <textarea id="message" placeholder="Type your message..."
+                onkeydown="if(event.key==='Enter') sendMessage();"></textarea>
+      <button id="send" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
 
-    <script>
-      let activeTab = "Rainmaker";
-let currentChatID = null;
+  <script>
+    let activeTab = "Rainmaker";
+    let currentChatID = null;
 
-const botMessages = {
-    "Rainmaker": "🔹 You are in Rainmaker Mode (BizDev). Focus on clarity and strategic framing.",
-    "Insight-Magus": "🔹 You are in Insight-Magus Mode (Strategy). Analyze logic and emotional patterns.",
-    "Voice Sculptor": "🔹 You are in Voice Sculptor Mode (Copy). Refine brand tone and resonance.",
-    "ROI Architect": "🔹 You are in ROI Architect Mode (Conversion). Prioritize proof layering and CTA."
-};
+    const botMessages = {
+      "Rainmaker":      "🔹 You are in Rainmaker Mode (BizDev)…",
+      "Insight-Magus":  "🔹 You are in Insight-Magus Mode (Strategy)…",
+      "Voice Sculptor": "🔹 You are in Voice Sculptor Mode (Copy)…",
+      "ROI Architect":  "🔹 You are in ROI Architect Mode (Conversion)…"
+    };
 
-// Switch between bots and start a new chat session if needed
-function switchTab(tabName) {
-    activeTab = tabName;
-    if (!currentChatID || !currentChatID.startsWith(activeTab)) {
-        startNewChat();
-    } else {
-        loadChatSessions();
-        loadChatHistory();
+    // Utility to append a bubble
+    function appendMessage(role, content) {
+      const div = document.createElement("div");
+      div.className = `msg ${role}`;
+      if (role === "bot") div.innerHTML = marked.parse(content);
+      else div.textContent = content;
+      const box = document.getElementById("chatbox");
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
     }
-}
 
-// Generate a unique chat ID for each bot and session
-// Generate a unique chat ID for each bot and session
-// Generate a unique chat ID for each bot and session
-function generateChatID(botName) {
-    const now = new Date();
-    return `${botName}_${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
-}
+    // 1. Switch tabs
+    function switchTab(tab) {
+      activeTab = tab;
+      if (!currentChatID || !currentChatID.startsWith(activeTab)) {
+        startNewChat();
+      } else {
+        loadChatSessions();
+        loadChatHistoryFromServer();
+      }
+    }
 
+    // 2. Generate a unique chat ID
+    function generateChatID(botName) {
+      const now = new Date();
+      return `${botName}_${now.getFullYear()}${String(now.getMonth()+1).padStart(2,"0")}`
+           + `${String(now.getDate()).padStart(2,"0")}_${String(now.getHours()).padStart(2,"0")}`
+           + `${String(now.getMinutes()).padStart(2,"0")}${String(now.getSeconds()).padStart(2,"0")}`;
+    }
 
-// Start a new chat with a bot-specific opening message
-function startNewChat() {
-    currentChatID = generateChatID(activeTab);  // Updated to use function
-    saveChatMessage("system", botMessages[activeTab]);
-    loadChatSessions();
-    loadChatHistory();
-}
+    // 3. Start a fresh chat: save system prompt then load history
+    // async function startNewChat() {
+    //   currentChatID = generateChatID(activeTab);
+    //   await fetch("/chat", {
+    //     method: "POST",
+    //     headers: {"Content-Type":"application/json"},
+    //     body: JSON.stringify({
+    //       message: botMessages[activeTab],
+    //       tab: activeTab,
+    //       chat_id: currentChatID
+    //     })
+    //   });
+    //   await loadChatSessions();
+    //   await loadChatHistoryFromServer();
+    // }
 
+    // 4. Load session list
+    // async function loadChatSessions() {
+    //   const list = document.getElementById("chat-list");
+    //   list.innerHTML = "";
+    //   // We can’t list from Firestore easily—keep last 20 in sessionStorage
+    //   const keys = Object.keys(sessionStorage)
+    //                      .filter(k=>k.startsWith(activeTab))
+    //                      .slice(-20);
+    //   keys.forEach(id => {
+    //     const btn = document.createElement("button");
+    //     btn.textContent = id;
+    //     btn.onclick = async () => {
+    //       currentChatID = id;
+    //       await loadChatHistoryFromServer();
+    //     };
 
+    //     const del = document.createElement("button");
+    //     del.textContent = "❌";
+    //     del.className = "delete-btn";
+    //     del.onclick = async e => {
+    //       e.stopPropagation();
+    //       await fetch(`/delete_chat/${activeTab}/${id}`);
+    //       sessionStorage.removeItem(id);
+    //       await loadChatSessions();
+    //     };
 
-// Load chat history specific to the current bot and session
-function loadChatHistory() {
-    const messages = document.getElementById("chatbox");
-    messages.innerHTML = "";
-    const chatHistory = JSON.parse(localStorage.getItem(currentChatID) || "[]");
-    chatHistory.forEach(m => {
-        const msgDiv = document.createElement("div");
-        msgDiv.className = `msg ${m.role}`;
-        // Render Markdown for bot responses
-        if (m.role === "bot") {
-            msgDiv.innerHTML = marked.parse(m.content);
-        } else {
-            msgDiv.textContent = m.content;
-        }
-        messages.appendChild(msgDiv);
-    });
-    messages.scrollTop = messages.scrollHeight;
-}
+    //     btn.appendChild(del);
+    //     list.appendChild(btn);
+    //   });
+    // }
 
-// Save chat message locally and update UI
-function saveChatMessage(role, content) {
-    const chatHistory = JSON.parse(localStorage.getItem(currentChatID) || "[]");
-    chatHistory.push({ role, content });
-    localStorage.setItem(currentChatID, JSON.stringify(chatHistory));
-    loadChatHistory();
-}
-
-
-// Send message to the backend and display the response
-function sendMessage() {
-    const input = document.getElementById("message").value;
-    if (!input) return;
-    saveChatMessage("user", input);
-
-    fetch("/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input, tab: activeTab, chat_id: currentChatID })
-    })
-    .then(response => response.json())
-    .then(data => {
-        saveChatMessage("bot", data.reply);
-        loadChatHistory();
-    })
-    .catch(error => console.error("Error sending message:", error));
-
-    document.getElementById("message").value = "";
-}
-
-// Load chat sessions specific to the active bot
-function loadChatSessions() {
-    const chatList = document.getElementById("chat-list");
-    chatList.innerHTML = "";
-    const chats = Object.keys(localStorage).filter(key => key.startsWith(activeTab)).slice(-20);
-
-    chats.forEach(chatID => {
-        const button = document.createElement("button");
-        button.textContent = chatID;
-
-        // Delete button for each chat
-        const deleteBtn = document.createElement("button");
-        deleteBtn.textContent = "❌";
-        deleteBtn.className = "delete-btn";
-        deleteBtn.onclick = (e) => deleteChat(chatID, e);
-
-        // Click to load the chat session
-        button.onclick = () => {
-            currentChatID = chatID;
-            loadChatHistory();
+  async function loadChatSessions() {
+    const list = document.getElementById("chat-list");
+    list.innerHTML = "";
+    try {
+      // 1️⃣ fetch from our new endpoint
+      const res = await fetch(`/sessions/${activeTab}`);
+      const sessions = await res.json();
+      // 2️⃣ take the last 20 (newest)
+      sessions.slice(-20).forEach(sess => {
+        const id = sess.chat_id;
+        const btn = document.createElement("button");
+        btn.textContent = id;
+        btn.onclick = async () => {
+          currentChatID = id;
+          await loadChatHistoryFromServer();
         };
 
-        button.appendChild(deleteBtn);
-        chatList.appendChild(button);
-    });
-}
+        const del = document.createElement("button");
+        del.textContent = "❌";
+        del.className = "delete-btn";
+        del.onclick = async e => {
+          e.stopPropagation();
+          await fetch(`/delete_chat/${activeTab}/${id}`);
+          await loadChatSessions();
+        };
 
-// Delete a chat session from storage and Firestore
-function deleteChat(chatID, event) {
-    event.stopPropagation();
-    fetch(`/delete_chat/${chatID}`).then(() => {
-        localStorage.removeItem(chatID);
-        loadChatSessions();
-    });
-}
-
-// Logout and reload the page
-function logout() {
-    fetch("/logout")
-        .then(() => {
-            localStorage.clear();
-            alert("Logged out successfully!");
-            window.location.href = "/";
-        })
-        .catch(error => console.error("Error during logout:", error));
-}
-
-// Resume the last active session on page load
-async function resumeLastSession() {
-    try {
-        const response = await fetch(`/resume_session/${activeTab}`);
-        const data = await response.json();
-        if (data.chat_id) {
-            currentChatID = data.chat_id;
-            loadChatHistory();
-        } else {
-            startNewChat();
-        }
-    } catch (error) {
-        console.error("Error resuming session:", error);
-        startNewChat();
+        btn.appendChild(del);
+        list.appendChild(btn);
+      });
+    } catch (err) {
+      console.error("Could not load sessions:", err);
     }
+  }
+
+
+    // 5. Load history from Firestore
+    async function loadChatHistoryFromServer() {
+      document.getElementById("chatbox").innerHTML = "";
+      try {
+        const res = await fetch(`/history/${activeTab}/${currentChatID}`);
+        const history = await res.json();
+        history.forEach(m=>appendMessage(m.role, m.content));
+      } catch(err) {
+        console.error("History load error", err);
+      }
+    }
+
+    // 6. Send a user message
+    // async function sendMessage() {
+    //   const txt = document.getElementById("message").value.trim();
+    //   if (!txt) return;
+    //   appendMessage("user", txt);
+    //   document.getElementById("message").value = "";
+
+    //   // show typing…
+    //   document.getElementById("typing-indicator").style.display = "block";
+
+    //   try {
+    //     const res = await fetch("/chat", {
+    //       method: "POST",
+    //       headers: {"Content-Type":"application/json"},
+    //       body: JSON.stringify({
+    //         message: txt,
+    //         tab: activeTab,
+    //         chat_id: currentChatID
+    //       })
+    //     });
+    //     const data = await res.json();
+
+    //     document.getElementById("typing-indicator").style.display = "none";
+    //     currentChatID = data.chat_id;
+    //     appendMessage("bot", data.reply);
+
+    //     // remember this session in sessionStorage
+    //     sessionStorage.setItem(currentChatID, "1");
+    //     await loadChatSessions();
+
+    //   } catch(err) {
+    //     console.error("Chat error:", err);
+    //     document.getElementById("typing-indicator").style.display = "none";
+    //     appendMessage("bot", "⚠️ Error processing your request.");
+    //   }
+    // }
+async function startNewChat() {
+  currentChatID = generateChatID(activeTab);
+  // send the system prompt to the /chat API which will
+  // create the session metadata automatically
+  await fetch("/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message: botMessages[activeTab],
+      tab: activeTab,
+      chat_id: currentChatID
+    })
+  });
+  // then refresh the list & history
+  await loadChatSessions();
+  await loadChatHistoryFromServer();
 }
-// Initialize chat session on page load
-window.onload = () => {
-    resumeLastSession();
-};
+
+// async function sendMessage() {
+//   const txt = document.getElementById("message").value.trim();
+//   if (!txt) return;
+//   appendMessage("user", txt);
+//   document.getElementById("message").value = "";
+
+//   document.getElementById("typing-indicator").style.display = "block";
+//   try {
+//     const res = await fetch("/chat", {
+//       method: "POST",
+//       headers: { "Content-Type": "application/json" },
+//       body: JSON.stringify({
+//         message: txt,
+//         tab: activeTab,
+//         chat_id: currentChatID
+//       })
+//     });
+//     const data = await res.json();
+//     document.getElementById("typing-indicator").style.display = "none";
+//     currentChatID = data.chat_id;
+//     appendMessage("bot", data.reply);
+
+//     // update list now that a brand-new session might exist
+//     await loadChatSessions();
+//   } catch (err) {
+//     console.error("Chat error:", err);
+//     document.getElementById("typing-indicator").style.display = "none";
+//     appendMessage("bot", "⚠️ Error processing your request.");
+//   }
+// }
 
 
-// window.onload = startNewChat;
+  // ── Helper: gradually type out the bot’s reply ────────────────────────────────
+  function typeText(msgDiv, text, speed = 10) {
+    let i = 0;
+    const box = document.getElementById("chatbox");
+    function typeChar() {
+      if (i < text.length) {
+        msgDiv.textContent += text.charAt(i++);
+        box.scrollTop = box.scrollHeight;
+        setTimeout(typeChar, speed);
+      } else {
+        // Once done, render Markdown properly
+        msgDiv.innerHTML = marked.parse(text);
+        box.scrollTop = box.scrollHeight;
+      }
+    }
+    typeChar();
+  }
+
+  // ── Updated sendMessage() ────────────────────────────────────────────────────
+  async function sendMessage() {
+    const inputEl = document.getElementById("message");
+    const txt     = inputEl.value.trim();
+    if (!txt) return;
+    appendMessage("user", txt);
+    inputEl.value = "";
+
+    // Show the generic typing indicator
+    const typingEl = document.getElementById("typing-indicator");
+    typingEl.style.display = "block";
+
+    try {
+      const res  = await fetch("/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: txt,
+          tab: activeTab,
+          chat_id: currentChatID
+        })
+      });
+      const data = await res.json();
+      // Hide the generic indicator
+      typingEl.style.display = "none";
+
+      // Update chat_id in case it was newly generated
+      currentChatID = data.chat_id;
+
+      // Create a new bot bubble, then type into it
+      const box   = document.getElementById("chatbox");
+      const msgDiv = document.createElement("div");
+      msgDiv.className = "msg bot";
+      box.appendChild(msgDiv);
+
+      // Type‐out effect
+      typeText(msgDiv, data.reply, 10 /* ms per character */);
+
+      // Refresh session list
+      await loadChatSessions();
+
+    } catch (err) {
+      console.error("Chat error:", err);
+      typingEl.style.display = "none";
+      appendMessage("bot", "⚠️ Error processing your request.");
+    }
+  }
 
 
-    </script>
+
+    // 7. Resume on load
+    // async function resumeLastSession() {
+    //   try {
+    //     const res = await fetch(`/resume_session/${activeTab}`);
+    //     const data = await res.json();
+    //     if (data.chat_id) {
+    //       currentChatID = data.chat_id;
+    //       sessionStorage.setItem(currentChatID, "1");
+    //       await loadChatSessions();
+    //       await loadChatHistoryFromServer();
+    //     } else {
+    //       await startNewChat();
+    //     }
+    //   } catch {
+    //     await startNewChat();
+    //   }
+    // }
+
+  async function resumeLastSession() {
+    try {
+      // 1️⃣ see if there’s a “last” session
+      const r = await fetch(`/resume_session/${activeTab}`);
+      const { chat_id } = await r.json();
+      if (chat_id) {
+        currentChatID = chat_id;
+      }
+    } catch {
+      currentChatID = null;
+    }
+
+    // 2️⃣ list all existing sessions
+    await loadChatSessions();
+
+    // 3️⃣ either load it or start fresh
+    if (currentChatID) {
+      await loadChatHistoryFromServer();
+    } else {
+      await startNewChat();
+    }
+  }
+
+  window.onload = resumeLastSession;
+
+
+    // 8. Logout
+    function logout() {
+      fetch("/logout")
+        .then(()=>{ sessionStorage.clear(); window.location.href="/"; })
+        .catch(console.error);
+    }
+
+    window.onload = resumeLastSession;
+  </script>
 </body>
 </html>
