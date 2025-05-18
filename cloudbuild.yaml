@@ -2,6 +2,9 @@ steps:
   - name: 'gcr.io/cloud-builders/gsutil'
     args: ['cp', '-r', $_ENV , '.' ]
 
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args: ['cp', '-r', $_SERVICE_ACCOUNT , '.' ] 
+   
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', '$_CONTAINER_REGISTRY', '.']
 
