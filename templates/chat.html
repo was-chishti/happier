@@ -96,6 +96,10 @@
           background-color: #eee7ff;
           color: #4a148c;
       }
+.tab-button.active {
+  background-color: #5555aa;    /* brighter shade */
+  font-weight: 600;             /* make it stand out */
+}
   </style>
   
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -115,10 +119,18 @@
   <div id="nav">
     <div>
       <h3>Bot Tabs</h3>
-      <button class="tab-button" onclick="switchTab('Rainmaker')">🌧️ Rainmaker</button>
+<!--       <button class="tab-button" onclick="switchTab('Rainmaker')">🌧️ Rainmaker</button>
       <button class="tab-button" onclick="switchTab('Insight-Magus')">🧠 Insight-Magus</button>
       <button class="tab-button" onclick="switchTab('Voice Sculptor')">🗣️ Voice Sculptor</button>
-      <button class="tab-button" onclick="switchTab('ROI Architect')">📈 ROI Architect</button>
+      <button class="tab-button" onclick="switchTab('ROI Architect')">📈 ROI Architect</button> -->
+
+    <div id="nav"><div>
+    <h3>Bot Tabs</h3>
+    <button class="tab-button" data-tab="Rainmaker" onclick="switchTab('Rainmaker')">🌧️ Rainmaker</button>
+    <button class="tab-button" data-tab="Insight-Magus" onclick="switchTab('Insight-Magus')">🧠 Insight-Magus</button>
+    <button class="tab-button" data-tab="Voice Sculptor" onclick="switchTab('Voice Sculptor')">🗣️ Voice Sculptor</button>
+    <button class="tab-button" data-tab="ROI Architect" onclick="switchTab('ROI Architect')">📈 ROI Architect</button>
+
       <h3>Chats</h3>
       <button onclick="startNewChat()">➕ New Chat</button>
       <div id="chat-list"></div>
@@ -175,12 +187,18 @@
     //     loadChatHistoryFromServer();
     //   }
     // }
+// Call this whenever `activeTab` changes
+function updateTabHighlight() {
+  document.querySelectorAll('.tab-button').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === activeTab);
+  });
+}
 
 
       // 1. Switch tabs (no auto-new‐chat!)
 async function switchTab(tab) {
   activeTab = tab;
-
+  updateTabHighlight();
   // 1️⃣ reload the list of sessions for this tab
   await loadChatSessions();
 
@@ -476,6 +494,8 @@ async function startNewChat() {
     // }
 
   async function resumeLastSession() {
+// highlight the default tab on load
+      updateTabHighlight();
     try {
       // 1️⃣ see if there’s a “last” session
       const r = await fetch(`/resume_session/${activeTab}`);
