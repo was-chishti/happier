@@ -96,24 +96,13 @@
           background-color: #eee7ff;
           color: #4a148c;
       }
-.tab-button.active {
-  background-color: #5555aa;    /* brighter shade */
-  font-weight: 600;             /* make it stand out */
-}
+    .tab-button.active {
+          background-color: #5555aa;    /* brighter shade */
+          font-weight: 600;             /* make it stand out */
+        }
   </style>
   
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>HappierClient | Strategic Partner OS</title>
-  <link rel="stylesheet"href="https://fonts.googleapis.com/css?family=Inter:400,500,600,700|Playfair+Display&display=swap" />
-  <link rel="icon" type="image/png" href="{{ url_for('static', filename='happierclient-logo.png') }}" />
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <style>
-    /* … your existing styles … */
-  </style>
 </head>
 <body>
   <div id="nav">
@@ -185,17 +174,17 @@
     //   }
     // }
 // Call this whenever `activeTab` changes
-function updateTabHighlight() {
-  document.querySelectorAll('.tab-button').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.tab === activeTab);
-  });
-}
+    function updateTabHighlight() {
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === activeTab);
+      });
+    }
 
 
       // 1. Switch tabs (no auto-new‐chat!)
 async function switchTab(tab) {
-  activeTab = tab;
-  updateTabHighlight();
+      activeTab = tab;
+      updateTabHighlight();
   // 1️⃣ reload the list of sessions for this tab
   await loadChatSessions();
 
