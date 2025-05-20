@@ -302,7 +302,38 @@ def login_required(f):
             return redirect(url_for("login"))
         return f(*args, **kwargs)
     return decorated
+# ─── Sign Up ────────────────────────────────────────────────────────────────────
+@app.route("/signup", methods=["GET", "POST"])
+def signup():
+    if request.method == "POST":
+        username = request.form["username"].strip()
+        password = request.form["password"]
+        confirm  = request.form["confirm_password"]
 
+        # 1) Passwords must match
+        if password != confirm:
+            flash("Passwords do not match", "danger")
+            return render_template("signup.html")
+
+        user_ref = db.collection("users").document(username)
+        # 2) No duplicate usernames
+        if user_ref.get().exists:
+            flash("Username already taken", "danger")
+            return render_template("signup.html")
+
+        # 3) Create the user in Firestore
+        user_ref.set({
+            "username":   username,
+            "password":   password,
+            "created_at": datetime.utcnow().isoformat()
+        })
+
+        # 4) Flash success and send them back to login
+        flash("Registration successful! Please log in.", "success")
+        return redirect(url_for("login"))
+
+    return render_template("signup.html")
+    
 # ─── Login / Logout ─────────────────────────────────────────────────────────────
 @app.route("/", methods=["GET", "POST"])
 def login():
