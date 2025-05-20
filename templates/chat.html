@@ -165,16 +165,41 @@
       box.scrollTop = box.scrollHeight;
     }
 
-    // 1. Switch tabs
-    function switchTab(tab) {
-      activeTab = tab;
-      if (!currentChatID || !currentChatID.startsWith(activeTab)) {
-        startNewChat();
-      } else {
-        loadChatSessions();
-        loadChatHistoryFromServer();
-      }
+    // // 1. Switch tabs
+    // function switchTab(tab) {
+    //   activeTab = tab;
+    //   if (!currentChatID || !currentChatID.startsWith(activeTab)) {
+    //     startNewChat();
+    //   } else {
+    //     loadChatSessions();
+    //     loadChatHistoryFromServer();
+    //   }
+    // }
+
+
+      // 1. Switch tabs (no auto-new‐chat!)
+async function switchTab(tab) {
+  activeTab = tab;
+
+  // 1️⃣ reload the list of sessions for this tab
+  await loadChatSessions();
+
+  // 2️⃣ try to pick up the last active session, if any
+  try {
+    const res = await fetch(`/resume_session/${activeTab}`);
+    const { chat_id } = await res.json();
+    if (chat_id) {
+      currentChatID = chat_id;
+      await loadChatHistoryFromServer();
+    } else {
+      // no prior session: just clear the chat area
+      document.getElementById("chatbox").innerHTML = "";
     }
+  } catch (err) {
+    console.error("Error resuming session:", err);
+    document.getElementById("chatbox").innerHTML = "";
+  }
+}
 
     // 2. Generate a unique chat ID
     function generateChatID(botName) {
