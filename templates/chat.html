@@ -413,24 +413,42 @@ async function startNewChat() {
 // }
 
 
-  // ── Helper: gradually type out the bot’s reply ────────────────────────────────
-  function typeText(msgDiv, text, speed = 10) {
-    let i = 0;
-    const box = document.getElementById("chatbox");
-    function typeChar() {
-      if (i < text.length) {
-        msgDiv.textContent += text.charAt(i++);
-        box.scrollTop = box.scrollHeight;
-        setTimeout(typeChar, speed);
-      } else {
-        // Once done, render Markdown properly
-        msgDiv.innerHTML = marked.parse(text);
-        box.scrollTop = box.scrollHeight;
-      }
-    }
-    typeChar();
-  }
+  // // ── Helper: gradually type out the bot’s reply ────────────────────────────────
+  // function typeText(msgDiv, text, speed = 10) {
+  //   let i = 0;
+  //   const box = document.getElementById("chatbox");
+  //   function typeChar() {
+  //     if (i < text.length) {
+  //       msgDiv.textContent += text.charAt(i++);
+  //       box.scrollTop = box.scrollHeight;
+  //       setTimeout(typeChar, speed);
+  //     } else {
+  //       // Once done, render Markdown properly
+  //       msgDiv.innerHTML = marked.parse(text);
+  //       box.scrollTop = box.scrollHeight;
+  //     }
+  //   }
+  //   typeChar();
+  // }
 
+
+function typeText(msgDiv, text, speed = 10) {
+  let i = 0;
+  const box = document.getElementById("chatbox");
+  function typeChar() {
+    if (i < text.length) {
+      // take the first i+1 chars, parse to HTML, inject
+      const partial = text.slice(0, i + 1);
+      msgDiv.innerHTML = marked.parse(partial);
+      box.scrollTop = box.scrollHeight;
+      i++;
+      setTimeout(typeChar, speed);
+    }
+  }
+  typeChar();
+}
+
+      
   // ── Updated sendMessage() ────────────────────────────────────────────────────
   async function sendMessage() {
     const inputEl = document.getElementById("message");
