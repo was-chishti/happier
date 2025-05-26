@@ -13,7 +13,8 @@
       #nav { width: 250px; background: #333366; color: white; display: flex; flex-direction: column; padding: 10px; justify-content: space-between; }
       #nav h3 { margin: 10px 0; font-size: 18px; }
       #nav button, #nav .tab-button { margin: 5px 0; padding: 8px; background: #444488; border: none; color: white; border-radius: 5px; cursor: pointer; width: 100%; text-align: left; }
-      #nav button:hover, #nav .tab-button:hover { background: #5555aa; }, #nav button, #nav .tab-button {
+      #nav button,
+#nav .tab-button {
   margin: 5px 0;
   padding: 8px;
   background: #444488;
@@ -24,7 +25,9 @@
   width: 100%;
   text-align: left;
 }
-#nav button:hover, #nav .tab-button:hover {
+
+#nav button:hover,
+#nav .tab-button:hover {
   background: #5555aa;
 }
 
@@ -153,6 +156,8 @@
     <div class="input-area">
       <textarea id="message" placeholder="Type your message..."
                 onkeydown="if(event.key==='Enter') sendMessage();"></textarea>
+                <input type="file" id="file-input" />
+
       <button id="send" onclick="sendMessage()">Send</button>
     </div>
   </div>
@@ -450,54 +455,93 @@ function typeText(msgDiv, text, speed = 10) {
 
       
   // ── Updated sendMessage() ────────────────────────────────────────────────────
+  // async function sendMessage() {
+  //   const inputEl = document.getElementById("message");
+  //   const txt     = inputEl.value.trim();
+  //   if (!txt) return;
+  //   appendMessage("user", txt);
+  //   inputEl.value = "";
+
+  //   // Show the generic typing indicator
+  //   const typingEl = document.getElementById("typing-indicator");
+  //   typingEl.style.display = "block";
+
+  //   try {
+  //     const res  = await fetch("/chat", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         message: txt,
+  //         tab: activeTab,
+  //         chat_id: currentChatID
+  //       })
+  //     });
+  //     const data = await res.json();
+  //     // Hide the generic indicator
+  //     typingEl.style.display = "none";
+
+  //     // Update chat_id in case it was newly generated
+  //     currentChatID = data.chat_id;
+
+  //     // Create a new bot bubble, then type into it
+  //     const box   = document.getElementById("chatbox");
+  //     const msgDiv = document.createElement("div");
+  //     msgDiv.className = "msg bot";
+  //     box.appendChild(msgDiv);
+
+  //     // Type‐out effect
+  //     typeText(msgDiv, data.reply, 10 /* ms per character */);
+
+  //     // Refresh session list
+  //     await loadChatSessions();
+
+  //   } catch (err) {
+  //     console.error("Chat error:", err);
+  //     typingEl.style.display = "none";
+  //     appendMessage("bot", "⚠️ Error processing your request.");
+  //   }
+  // }
+
   async function sendMessage() {
-    const inputEl = document.getElementById("message");
-    const txt     = inputEl.value.trim();
-    if (!txt) return;
-    appendMessage("user", txt);
-    inputEl.value = "";
+  const inputEl = document.getElementById("message");
+  const fileEl = document.getElementById("file-input");
+  const txt = inputEl.value.trim();
+  const file = fileEl.files[0];
 
-    // Show the generic typing indicator
-    const typingEl = document.getElementById("typing-indicator");
-    typingEl.style.display = "block";
+  if (!txt && !file) return;
 
-    try {
-      const res  = await fetch("/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: txt,
-          tab: activeTab,
-          chat_id: currentChatID
-        })
-      });
-      const data = await res.json();
-      // Hide the generic indicator
-      typingEl.style.display = "none";
+  if (txt) appendMessage("user", txt);
+  inputEl.value = "";
 
-      // Update chat_id in case it was newly generated
-      currentChatID = data.chat_id;
+  const formData = new FormData();
+  formData.append("tab", activeTab);
+  formData.append("chat_id", currentChatID || "");
+  formData.append("message", txt || "");
+  if (file) formData.append("file", file);
 
-      // Create a new bot bubble, then type into it
-      const box   = document.getElementById("chatbox");
-      const msgDiv = document.createElement("div");
-      msgDiv.className = "msg bot";
-      box.appendChild(msgDiv);
+  document.getElementById("typing-indicator").style.display = "block";
 
-      // Type‐out effect
-      typeText(msgDiv, data.reply, 10 /* ms per character */);
-
-      // Refresh session list
-      await loadChatSessions();
-
-    } catch (err) {
-      console.error("Chat error:", err);
-      typingEl.style.display = "none";
-      appendMessage("bot", "⚠️ Error processing your request.");
-    }
+  try {
+    const res = await fetch("/chat_with_file", {
+      method: "POST",
+      body: formData
+    });
+    const data = await res.json();
+    document.getElementById("typing-indicator").style.display = "none";
+    currentChatID = data.chat_id;
+    const msgDiv = document.createElement("div");
+    msgDiv.className = "msg bot";
+    document.getElementById("chatbox").appendChild(msgDiv);
+    typeText(msgDiv, data.reply, 10);
+    await loadChatSessions();
+  } catch (err) {
+    console.error("File chat error:", err);
+    document.getElementById("typing-indicator").style.display = "none";
+    appendMessage("bot", "⚠️ File processing failed.");
   }
 
-
+  fileEl.value = ""; // Reset file input
+}
 
     // 7. Resume on load
     // async function resumeLastSession() {
