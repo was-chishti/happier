@@ -21,4 +21,4 @@ steps:
       '--platform', 'managed',
       '--region', '$_REGION'
   ]
-logsBucket: gs://your-logging-bucket  
+logsBucket: gs://gaplogs
