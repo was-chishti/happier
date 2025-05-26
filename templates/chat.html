@@ -13,7 +13,30 @@
       #nav { width: 250px; background: #333366; color: white; display: flex; flex-direction: column; padding: 10px; justify-content: space-between; }
       #nav h3 { margin: 10px 0; font-size: 18px; }
       #nav button, #nav .tab-button { margin: 5px 0; padding: 8px; background: #444488; border: none; color: white; border-radius: 5px; cursor: pointer; width: 100%; text-align: left; }
-      #nav button:hover, #nav .tab-button:hover { background: #5555aa; }
+      #nav button,
+#nav .tab-button {
+  margin: 5px 0;
+  padding: 8px;
+  background: #444488;
+  border: none;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+#nav button:hover,
+#nav .tab-button:hover {
+  background: #5555aa;
+}
+
+/* → THIS MUST BE A STAND-ALONE RULE ← */
+#nav .tab-button.active {
+  background-color: #5555aa;
+  font-weight: 600;
+}
+
       #logout { background: #990000; margin-top: auto; }
       #chat-list { margin-top: 10px; }
       #chat-list button { background: #222; color: white; margin: 2px 0; padding: 5px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
@@ -99,27 +122,20 @@
   </style>
   
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>HappierClient | Strategic Partner OS</title>
-  <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css?family=Inter:400,500,600,700|Playfair+Display&display=swap" />
-  <link rel="icon" type="image/png" href="{{ url_for('static', filename='happierclient-logo.png') }}" />
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <style>
-    /* … your existing styles … */
-  </style>
 </head>
 <body>
   <div id="nav">
     <div>
       <h3>Bot Tabs</h3>
-      <button class="tab-button" onclick="switchTab('Rainmaker')">🌧️ Rainmaker</button>
+<!--       <button class="tab-button" onclick="switchTab('Rainmaker')">🌧️ Rainmaker</button>
       <button class="tab-button" onclick="switchTab('Insight-Magus')">🧠 Insight-Magus</button>
       <button class="tab-button" onclick="switchTab('Voice Sculptor')">🗣️ Voice Sculptor</button>
-      <button class="tab-button" onclick="switchTab('ROI Architect')">📈 ROI Architect</button>
+      <button class="tab-button" onclick="switchTab('ROI Architect')">📈 ROI Architect</button> -->
+    <button class="tab-button" data-tab="Rainmaker" onclick="switchTab('Rainmaker')">🌧️ Rainmaker</button>
+    <button class="tab-button" data-tab="Insight-Magus" onclick="switchTab('Insight-Magus')">🧠 Insight-Magus</button>
+    <button class="tab-button" data-tab="Voice Sculptor" onclick="switchTab('Voice Sculptor')">🗣️ Voice Sculptor</button>
+    <button class="tab-button" data-tab="ROI Architect" onclick="switchTab('ROI Architect')">📈 ROI Architect</button>
+
       <h3>Chats</h3>
       <button onclick="startNewChat()">➕ New Chat</button>
       <div id="chat-list"></div>
@@ -130,13 +146,18 @@
   <div id="chat-container">
     <div id="header">
       <h2>Welcome to Happier Client</h2>
-      <img src="{{ url_for('static', filename='happierclient-banner.png') }}" alt="Logo">
+      <!--<h3>Your Strategic Business Partner</h3>-->
+      <!-- <img height="500" width="900" src="{{ url_for('static', filename='happierclient-banner2.png') }}" alt="Logo"></h2> -->
+    <img height="400" width="300" src="{{ url_for('static', filename='happierclient-banner.png') }}" alt="Logo">
+      <!-- <h4>Welcome to Happier Client</h4> -->
     </div>
     <div id="chatbox"></div>
     <div id="typing-indicator" class="msg bot" style="display:none;">🤖 Typing...</div>
     <div class="input-area">
       <textarea id="message" placeholder="Type your message..."
                 onkeydown="if(event.key==='Enter') sendMessage();"></textarea>
+                <input type="file" id="file-input" />
+
       <button id="send" onclick="sendMessage()">Send</button>
     </div>
   </div>
@@ -163,16 +184,51 @@
       box.scrollTop = box.scrollHeight;
     }
 
-    // 1. Switch tabs
-    function switchTab(tab) {
-      activeTab = tab;
-      if (!currentChatID || !currentChatID.startsWith(activeTab)) {
-        startNewChat();
-      } else {
-        loadChatSessions();
-        loadChatHistoryFromServer();
-      }
+    // // 1. Switch tabs
+    // function switchTab(tab) {
+    //   activeTab = tab;
+    //   if (!currentChatID || !currentChatID.startsWith(activeTab)) {
+    //     startNewChat();
+    //   } else {
+    //     loadChatSessions();
+    //     loadChatHistoryFromServer();
+    //   }
+    // }
+// Call this whenever `activeTab` changes
+    function updateTabHighlight() {
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === activeTab);
+      });
     }
+  // after DOM is parsed wire everything up
+    document.addEventListener("DOMContentLoaded", () => {
+      updateTabHighlight();
+      resumeLastSession();
+    });
+
+      // 1. Switch tabs (no auto-new‐chat!)
+async function switchTab(tab) {
+      activeTab = tab;
+      updateTabHighlight();
+  // 1️⃣ reload the list of sessions for this tab
+  await loadChatSessions();
+
+  // 2️⃣ try to pick up the last active session, if any
+  try {
+    const res = await fetch(`/resume_session/${activeTab}`);
+    const { chat_id } = await res.json();
+    if (chat_id) {
+      currentChatID = chat_id;
+      await loadChatHistoryFromServer();
+    } else {
+      // no prior session: just clear the chat area
+      document.getElementById("chatbox").innerHTML = "";
+    }
+  } catch (err) {
+    console.error("Error resuming session:", err);
+    document.getElementById("chatbox").innerHTML = "";
+  }
+}
 
     // 2. Generate a unique chat ID
     function generateChatID(botName) {
@@ -362,73 +418,130 @@ async function startNewChat() {
 // }
 
 
-  // ── Helper: gradually type out the bot’s reply ────────────────────────────────
-  function typeText(msgDiv, text, speed = 10) {
-    let i = 0;
-    const box = document.getElementById("chatbox");
-    function typeChar() {
-      if (i < text.length) {
-        msgDiv.textContent += text.charAt(i++);
-        box.scrollTop = box.scrollHeight;
-        setTimeout(typeChar, speed);
-      } else {
-        // Once done, render Markdown properly
-        msgDiv.innerHTML = marked.parse(text);
-        box.scrollTop = box.scrollHeight;
-      }
-    }
-    typeChar();
-  }
+  // // ── Helper: gradually type out the bot’s reply ────────────────────────────────
+  // function typeText(msgDiv, text, speed = 10) {
+  //   let i = 0;
+  //   const box = document.getElementById("chatbox");
+  //   function typeChar() {
+  //     if (i < text.length) {
+  //       msgDiv.textContent += text.charAt(i++);
+  //       box.scrollTop = box.scrollHeight;
+  //       setTimeout(typeChar, speed);
+  //     } else {
+  //       // Once done, render Markdown properly
+  //       msgDiv.innerHTML = marked.parse(text);
+  //       box.scrollTop = box.scrollHeight;
+  //     }
+  //   }
+  //   typeChar();
+  // }
 
+
+function typeText(msgDiv, text, speed = 10) {
+  let i = 0;
+  const box = document.getElementById("chatbox");
+  function typeChar() {
+    if (i < text.length) {
+      // take the first i+1 chars, parse to HTML, inject
+      const partial = text.slice(0, i + 1);
+      msgDiv.innerHTML = marked.parse(partial);
+      box.scrollTop = box.scrollHeight;
+      i++;
+      setTimeout(typeChar, speed);
+    }
+  }
+  typeChar();
+}
+
+      
   // ── Updated sendMessage() ────────────────────────────────────────────────────
+  // async function sendMessage() {
+  //   const inputEl = document.getElementById("message");
+  //   const txt     = inputEl.value.trim();
+  //   if (!txt) return;
+  //   appendMessage("user", txt);
+  //   inputEl.value = "";
+
+  //   // Show the generic typing indicator
+  //   const typingEl = document.getElementById("typing-indicator");
+  //   typingEl.style.display = "block";
+
+  //   try {
+  //     const res  = await fetch("/chat", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         message: txt,
+  //         tab: activeTab,
+  //         chat_id: currentChatID
+  //       })
+  //     });
+  //     const data = await res.json();
+  //     // Hide the generic indicator
+  //     typingEl.style.display = "none";
+
+  //     // Update chat_id in case it was newly generated
+  //     currentChatID = data.chat_id;
+
+  //     // Create a new bot bubble, then type into it
+  //     const box   = document.getElementById("chatbox");
+  //     const msgDiv = document.createElement("div");
+  //     msgDiv.className = "msg bot";
+  //     box.appendChild(msgDiv);
+
+  //     // Type‐out effect
+  //     typeText(msgDiv, data.reply, 10 /* ms per character */);
+
+  //     // Refresh session list
+  //     await loadChatSessions();
+
+  //   } catch (err) {
+  //     console.error("Chat error:", err);
+  //     typingEl.style.display = "none";
+  //     appendMessage("bot", "⚠️ Error processing your request.");
+  //   }
+  // }
+
   async function sendMessage() {
-    const inputEl = document.getElementById("message");
-    const txt     = inputEl.value.trim();
-    if (!txt) return;
-    appendMessage("user", txt);
-    inputEl.value = "";
+  const inputEl = document.getElementById("message");
+  const fileEl = document.getElementById("file-input");
+  const txt = inputEl.value.trim();
+  const file = fileEl.files[0];
 
-    // Show the generic typing indicator
-    const typingEl = document.getElementById("typing-indicator");
-    typingEl.style.display = "block";
+  if (!txt && !file) return;
 
-    try {
-      const res  = await fetch("/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: txt,
-          tab: activeTab,
-          chat_id: currentChatID
-        })
-      });
-      const data = await res.json();
-      // Hide the generic indicator
-      typingEl.style.display = "none";
+  if (txt) appendMessage("user", txt);
+  inputEl.value = "";
 
-      // Update chat_id in case it was newly generated
-      currentChatID = data.chat_id;
+  const formData = new FormData();
+  formData.append("tab", activeTab);
+  formData.append("chat_id", currentChatID || "");
+  formData.append("message", txt || "");
+  if (file) formData.append("file", file);
 
-      // Create a new bot bubble, then type into it
-      const box   = document.getElementById("chatbox");
-      const msgDiv = document.createElement("div");
-      msgDiv.className = "msg bot";
-      box.appendChild(msgDiv);
+  document.getElementById("typing-indicator").style.display = "block";
 
-      // Type‐out effect
-      typeText(msgDiv, data.reply, 10 /* ms per character */);
-
-      // Refresh session list
-      await loadChatSessions();
-
-    } catch (err) {
-      console.error("Chat error:", err);
-      typingEl.style.display = "none";
-      appendMessage("bot", "⚠️ Error processing your request.");
-    }
+  try {
+    const res = await fetch("/chat_with_file", {
+      method: "POST",
+      body: formData
+    });
+    const data = await res.json();
+    document.getElementById("typing-indicator").style.display = "none";
+    currentChatID = data.chat_id;
+    const msgDiv = document.createElement("div");
+    msgDiv.className = "msg bot";
+    document.getElementById("chatbox").appendChild(msgDiv);
+    typeText(msgDiv, data.reply, 10);
+    await loadChatSessions();
+  } catch (err) {
+    console.error("File chat error:", err);
+    document.getElementById("typing-indicator").style.display = "none";
+    appendMessage("bot", "⚠️ File processing failed.");
   }
 
-
+  fileEl.value = ""; // Reset file input
+}
 
     // 7. Resume on load
     // async function resumeLastSession() {
@@ -449,6 +562,8 @@ async function startNewChat() {
     // }
 
   async function resumeLastSession() {
+// highlight the default tab on load
+      updateTabHighlight();
     try {
       // 1️⃣ see if there’s a “last” session
       const r = await fetch(`/resume_session/${activeTab}`);
@@ -471,7 +586,7 @@ async function startNewChat() {
     }
   }
 
-  window.onload = resumeLastSession;
+  // window.onload = resumeLastSession;
 
 
     // 8. Logout
@@ -481,7 +596,7 @@ async function startNewChat() {
         .catch(console.error);
     }
 
-    window.onload = resumeLastSession;
+    // window.onload = resumeLastSession;
   </script>
 </body>
 </html>
