@@ -37,15 +37,13 @@ steps:
 
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
-    args:
-      [
-        'run',
-        'deploy',
-        '$_SERVICE_NAME',
-        '--image', '$_CONTAINER_REGISTRY',
-        '--platform', 'managed',
-        '--region', '$_REGION'
-      ]
 
-# ✅ Corrected: this goes outside the `steps` block
-logsBucket: gs://gaplogs
+    args: [
+      'run',
+      'deploy',
+      '$_SERVICE_NAME',
+      '--image', '$_CONTAINER_REGISTRY',
+      '--platform', 'managed',
+      '--region', '$_REGION'
+  ]
+ logsBucket: gs://gaplogs
