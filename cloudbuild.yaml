@@ -1,24 +1,27 @@
 steps:
   - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['cp','gs://happier-envs/frontend/.env', '.' ]
+    args: ['cp', 'gs://happier-envs/frontend/.env', '.' ]
 
   - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['cp','gs://happier-envs/config/happierclient-ab176a470aa6.json', '.' ] 
-   
+    args: ['cp', 'gs://happier-envs/config/happierclient-ab176a470aa6.json', '.' ] 
+
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', '$_CONTAINER_REGISTRY', '.']
 
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', '$_CONTAINER_REGISTRY']
-    
+
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
-    args: [
-      'run',
-      'deploy',
-      '$_SERVICE_NAME',
-      '--image', '$_CONTAINER_REGISTRY',
-      '--platform', 'managed',
-      '--region', '$_REGION'
-  ]
- - logsBucket: gs://gaplogs
+    args:
+      [
+        'run',
+        'deploy',
+        '$_SERVICE_NAME',
+        '--image', '$_CONTAINER_REGISTRY',
+        '--platform', 'managed',
+        '--region', '$_REGION'
+      ]
+
+# ✅ Corrected: this goes outside the `steps` block
+logsBucket: gs://gaplogs
