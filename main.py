@@ -535,4 +535,4 @@ def delete_chat(active_tab, chat_id):
 
 # ─── Run App ───────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=9800)
+    app.run(host="0.0.0.0", port=8080)
