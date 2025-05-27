@@ -467,10 +467,7 @@ def read_uploaded_file():
         return "\n".join([p.text for p in doc.paragraphs])
     return ""
 
-# In your chat route:
-file_context = read_uploaded_file()
-if file_context:
-    messages.append({"role": "system", "content": f"[FILE CONTEXT]\n{file_context[:3000]}"})
+##################################
 
 @app.route("/chat", methods=["POST"])
 @login_required
@@ -488,6 +485,10 @@ def chat_api():
         # Build the prompt list
         messages = [{"role":"system","content":system_instruction}]
         messages.append({"role":"system","content":tab_prompts.get(active_tab, "")})
+        # In your chat route:
+        file_context = read_uploaded_file()
+        if file_context:
+            messages.append({"role": "system", "content": f"[FILE CONTEXT]\n{file_context[:3000]}"})
         # Load last 20 messages from Firestore
         for msg in db.collection(messages_path).order_by("timestamp").limit(20).stream():
             md = msg.to_dict()
