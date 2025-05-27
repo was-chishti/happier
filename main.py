@@ -448,6 +448,29 @@ def chat():
         username=session["username"],
         tabs=bot_tabs
     )
+def read_uploaded_file():
+    path = session.get('uploaded_file')
+    if not path or not os.path.exists(path):
+        return ""
+
+    if path.endswith('.txt'):
+        with open(path, 'r') as f:
+            return f.read()
+    elif path.endswith('.pdf'):
+        import PyPDF2
+        with open(path, 'rb') as f:
+            reader = PyPDF2.PdfReader(f)
+            return "\n".join([page.extract_text() for page in reader.pages])
+    elif path.endswith('.docx'):
+        from docx import Document
+        doc = Document(path)
+        return "\n".join([p.text for p in doc.paragraphs])
+    return ""
+
+# In your chat route:
+file_context = read_uploaded_file()
+if file_context:
+    messages.append({"role": "system", "content": f"[FILE CONTEXT]\n{file_context[:3000]}"})
 
 @app.route("/chat", methods=["POST"])
 @login_required
@@ -532,6 +555,39 @@ def delete_chat(active_tab, chat_id):
     except Exception as e:
         logger.error(f"Delete chat error: {e}")
         return jsonify({"status": "error"}), 500
+
+from werkzeug.utils import secure_filename
+import tempfile
+
+# Directory for temporary file storage
+UPLOAD_FOLDER = tempfile.gettempdir()
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'docx'}
+
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route("/upload", methods=["POST"])
+@login_required
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file part"}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "No selected file"}), 400
+
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+
+        # Save file path in session for later retrieval
+        session['uploaded_file'] = file_path
+        return jsonify({"message": "File uploaded successfully", "filename": filename})
+
+    return jsonify({"error": "Invalid file type"}), 400
 
 # ─── Run App ───────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
