@@ -3,7 +3,7 @@ steps:
     args: ['cp','gs://happier-envs/frontend/.env', '.' ]
 
   - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['cp', '-r', $_SERVICE_ACCOUNT , '.' ] 
+    args: ['cp','gs://happier-envs/config/happierclient-ab176a470aa6.json', '.' ] 
    
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', '$_CONTAINER_REGISTRY', '.']
