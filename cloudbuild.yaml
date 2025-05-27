@@ -1,6 +1,6 @@
 steps:
   - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['cp', '-r', $_ENV , '.' ]
+    args: ['cp','gs://happier-envs/frontend/.env', '.' ]
 
   - name: 'gcr.io/cloud-builders/gsutil'
     args: ['cp', '-r', $_SERVICE_ACCOUNT , '.' ] 
@@ -21,4 +21,4 @@ steps:
       '--platform', 'managed',
       '--region', '$_REGION'
   ]
-logsBucket: gs://gaplogs
+- logsBucket: gs://gaplogs
