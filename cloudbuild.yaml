@@ -1,18 +1,43 @@
+# steps:
+#   - name: 'gcr.io/cloud-builders/gsutil'
+#     args: ['cp', '-r', $_ENV , '.' ]
+
+#   - name: 'gcr.io/cloud-builders/gsutil'
+#     args: ['cp', '-r', $_SERVICE_ACCOUNT , '.' ] 
+   
+#   - name: 'gcr.io/cloud-builders/docker'
+#     args: ['build', '-t', '$_CONTAINER_REGISTRY', '.']
+
+#   - name: 'gcr.io/cloud-builders/docker'
+#     args: ['push', '$_CONTAINER_REGISTRY']
+    
+#   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+#     entrypoint: gcloud
+#     args: [
+#       'run',
+#       'deploy',
+#       '$_SERVICE_NAME',
+#       '--image', '$_CONTAINER_REGISTRY',
+#       '--platform', 'managed',
+#       '--region', '$_REGION'
+#   ]
+# logsBucket: gs://gaplogs
 steps:
   - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['cp', '-r', $_ENV , '.' ]
+    args: ['cp', 'gs://happier-envs/frontend/.env', '.' ]
 
   - name: 'gcr.io/cloud-builders/gsutil'
-    args: ['cp', '-r', $_SERVICE_ACCOUNT , '.' ] 
-   
+    args: ['cp', 'gs://happier-envs/config/happierclient-ab176a470aa6.json', '.' ] 
+
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', '$_CONTAINER_REGISTRY', '.']
 
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', '$_CONTAINER_REGISTRY']
-    
+
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
+
     args: [
       'run',
       'deploy',
@@ -21,4 +46,4 @@ steps:
       '--platform', 'managed',
       '--region', '$_REGION'
   ]
-  - logsBucket: gs://gaplogs
+ logsBucket: gs://gaplogs

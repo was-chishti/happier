@@ -534,6 +534,84 @@ def delete_chat(active_tab, chat_id):
         logger.error(f"Delete chat error: {e}")
         return jsonify({"status": "error"}), 500
 
+
+from werkzeug.utils import secure_filename
+import tempfile
+
+@app.route("/chat_with_file", methods=["POST"])
+@login_required
+def chat_with_file():
+    try:
+        user_input = request.form.get("message", "")
+        active_tab = request.form.get("tab", "Rainmaker")
+        chat_id = request.form.get("chat_id") or f"{active_tab}_{datetime.utcnow().isoformat()}"
+        username = session["username"]
+        uploaded_file = request.files.get("file")
+
+        messages_path = f"users/{username}/bots/{active_tab}/sessions/{chat_id}/messages"
+
+        # Load past messages
+        messages = [{"role":"system","content":system_instruction}]
+        messages.append({"role":"system","content":tab_prompts.get(active_tab, "")})
+        for msg in db.collection(messages_path).order_by("timestamp").limit(20).stream():
+            md = msg.to_dict()
+            messages.append({"role": md["role"], "content": md["content"]})
+
+        if user_input:
+            messages.append({"role": "user", "content": user_input})
+            db.collection(messages_path).add({
+                "role": "user", "content": user_input,
+                "timestamp": datetime.utcnow().isoformat()
+            })
+
+        if uploaded_file:
+            filename = secure_filename(uploaded_file.filename)
+            with tempfile.NamedTemporaryFile(delete=False) as temp_file:
+                uploaded_file.save(temp_file.name)
+                with open(temp_file.name, "r", encoding="utf-8", errors="ignore") as f:
+                    file_content = f.read()
+                os.unlink(temp_file.name)
+
+            messages.append({"role": "user", "content": f"Here is a file I uploaded:\n\n{file_content[:4000]}"})  # limit to 4k tokens
+            db.collection(messages_path).add({
+                "role": "user",
+                "content": f"[File: {filename}] {file_content[:4000]}",
+                "timestamp": datetime.utcnow().isoformat()
+            })
+
+        # GPT call
+        response = openai.ChatCompletion.create(
+            model="gpt-4o-mini",
+            messages=messages,
+            max_tokens=1000,
+            temperature=0.8
+        )
+        reply = response.choices[0].message.content.strip()
+
+        db.collection(messages_path).add({
+            "role": "assistant",
+            "content": reply,
+            "timestamp": datetime.utcnow().isoformat()
+        })
+
+        db.collection(f"users/{username}/bots/{active_tab}/active_session") \
+          .document("last").set({
+            "chat_id":   chat_id,
+            "timestamp": datetime.utcnow().isoformat()
+        })
+
+        db.collection(f"users/{username}/bots/{active_tab}/sessions") \
+          .document(chat_id).set({
+            "created_at": datetime.utcnow().isoformat()
+        }, merge=True)
+
+        return jsonify({"reply": reply, "chat_id": chat_id})
+
+    except Exception as e:
+        logger.error(f"File-based chat error: {e}")
+        return jsonify({"reply": "⚠️ Failed to process file input."}), 500
+
+
 # ─── Run App ───────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=9800)
