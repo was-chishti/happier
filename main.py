@@ -242,7 +242,6 @@ import os
 import logging
 from datetime import datetime, timedelta
 from functools import wraps
-
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash
 from google.oauth2 import service_account
 from google.cloud import firestore
@@ -614,4 +613,4 @@ def chat_with_file():
 
 # ─── Run App ───────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=9800)
+    app.run(host="0.0.0.0", port=8080)
